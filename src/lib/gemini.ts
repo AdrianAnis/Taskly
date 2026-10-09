@@ -9,6 +9,8 @@ const TaskParsedSchema = z.object({
   deadline: z.string().nullable(),
 });
 
+const MODELS = ["gemini-3.5-flash", "gemini-3.7-flash", "gemini-3.1-flash-lite"];
+
 export type ParsedTask = z.infer<typeof TaskParsedSchema>;
 
 export async function parseWaMessage(message: string): Promise<ParsedTask> {
@@ -39,16 +41,18 @@ Aturan:
 - Tanggal tanpa jam: 23:59.
 - JANGAN sertakan markdown backticks, HANYA JSON murni.`;
 
-  try {
-    const model = ai.getGenerativeModel({ model: "gemini-2.5-flash", generationConfig: { responseMimeType: "application/json" } });
-    const response = await model.generateContent(prompt);
-    const text = response.response.text();
-    if (!text) throw new Error("No response text");
+  for (const modelName of MODELS) {
+    try {
+      const model = ai.getGenerativeModel({ model: modelName, generationConfig: { responseMimeType: "application/json" } });
+      const response = await model.generateContent(prompt);
+      const text = response.response.text();
+      if (!text) throw new Error("No response text");
 
-    const json = JSON.parse(text);
-    return TaskParsedSchema.parse(json);
-  } catch (error) {
-    console.error(error);
-    return { title: message, urgency: "sedang", deadline: null };
+      return TaskParsedSchema.parse(JSON.parse(text));
+    } catch (error) {
+      console.error(`Gemini ${modelName} failed`, error);
+    }
   }
+
+  return { title: message, urgency: "sedang", deadline: null };
 }
