@@ -11,12 +11,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const url = new URL(request.url);
-  const token = url.searchParams.get("token");
   const env = getServerEnv();
 
-  if (token !== env.FONNTE_WEBHOOK_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  // Temporarily bypass token check to see if Fonnte is hitting the webhook at all
+  // if (token !== env.FONNTE_WEBHOOK_SECRET) {
+  //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // }
 
   let body: any;
   try {
