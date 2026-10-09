@@ -11,8 +11,6 @@ export async function sendWhatsAppMessage(target: string, message: string): Prom
       headers: {
         Authorization: env.FONNTE_TOKEN,
       },
-      // Fonnte API biasanya mengharapkan format form-data atau application/json.
-      // Kita gunakan JSON jika didukung, atau URLSearchParams.
       body: new URLSearchParams({
         target,
         message,

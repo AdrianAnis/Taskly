@@ -3,7 +3,6 @@ import { countJakartaDaysBetween, parseJakartaInputValue, toJakartaInputValue } 
 
 describe("lib/time", () => {
   test("parseJakartaInputValue ke UTC", () => {
-    // 2026-10-10T08:00 WIB harusnya jadi 2026-10-10T01:00Z
     const date = parseJakartaInputValue("2026-10-10T08:00");
     expect(date.toISOString()).toBe("2026-10-10T01:00:00.000Z");
   });

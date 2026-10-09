@@ -5,7 +5,6 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
-      // Pre-cache the offline page
       await cache.add(new Request(OFFLINE_URL, { cache: "reload" }));
     })()
   );
@@ -15,12 +14,10 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
-      // Enable navigation preload if it's supported.
       if ("navigationPreload" in self.registration) {
         await self.registration.navigationPreload.enable();
       }
       
-      // Clean up old caches
       const keys = await caches.keys();
       await Promise.all(
         keys.map((key) => {

@@ -17,15 +17,12 @@ export function PwaInstallPrompt(): JSX.Element | null {
   const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
-    // Memeriksa apakah aplikasi sudah berjalan dalam mode standalone (diinstal)
     if (window.matchMedia("(display-mode: standalone)").matches) {
       return;
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {
-      // Mencegah Chrome mini-infobar muncul
       e.preventDefault();
-      // Menyimpan event agar bisa dipicu nanti
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
@@ -43,10 +40,8 @@ export function PwaInstallPrompt(): JSX.Element | null {
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     
-    // Tampilkan prompt instalasi bawaan browser
     deferredPrompt.prompt();
     
-    // Tunggu pilihan user
     const { outcome } = await deferredPrompt.userChoice;
     
     if (outcome === "accepted") {
