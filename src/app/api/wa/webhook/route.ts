@@ -31,13 +31,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid body format" }, { status: 400 });
   }
 
-  const sender = body.sender;
+  let sender = body.sender || "";
   const message = body.message;
   const providerId = body.id;
 
   if (!sender || !message || !providerId) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
+
+  // Strip WhatsApp suffix if present
+  sender = sender.replace(/@c\.us$/, "").replace(/@g\.us$/, "");
 
   if (!sender.endsWith(env.OWNER_PHONE.replace(/^0|^62/, ""))) {
     return NextResponse.json({ error: "Sender not whitelisted" }, { status: 403 });
