@@ -22,6 +22,7 @@ export async function sendWhatsAppMessage(target: string, message: string): Prom
       return { ok: true };
     }
     
+    console.error("Fonnte send failed", JSON.stringify(data));
     return { ok: false, error: data.reason || "Fonnte API returned false status" };
   } catch (error) {
     console.error("Failed to send WA message", error);

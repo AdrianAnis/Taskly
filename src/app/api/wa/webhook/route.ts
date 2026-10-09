@@ -31,18 +31,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid body format" }, { status: 400 });
   }
 
-  let sender = body.sender || "";
-  const message = body.message;
-  const providerId = body.id;
+  console.log("WA webhook body:", JSON.stringify(body));
 
-  if (!sender || !message || !providerId) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  const message: string | undefined = body.message ?? body.text;
+  const providerId: string = String(body.id ?? body.message_id ?? crypto.randomUUID());
+  const sender = String(body.sender ?? "").replace(/@.*$/, "").replace(/\D/g, "");
+  const owner = env.OWNER_PHONE.replace(/\D/g, "").replace(/^0|^62/, "");
+
+  if (!sender || !message) {
+    return NextResponse.json({ status: "ignored" });
   }
 
-  // Strip WhatsApp suffix if present
-  sender = sender.replace(/@c\.us$/, "").replace(/@g\.us$/, "");
-
-  if (!sender.endsWith(env.OWNER_PHONE.replace(/^0|^62/, ""))) {
+  if (!sender.endsWith(owner)) {
+    console.warn("WA sender not whitelisted:", sender);
     return NextResponse.json({ error: "Sender not whitelisted" }, { status: 403 });
   }
 
