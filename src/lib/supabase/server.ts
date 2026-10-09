@@ -1,8 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
-import { getSupabaseEnv } from "@/lib/env";
+import { getSupabaseEnv, getServerEnv } from "@/lib/env";
 import type { Database } from "@/lib/supabase/database.types";
+import { createClient } from "@supabase/supabase-js";
 
 export type ServerSupabase = SupabaseClient<Database>;
 
@@ -23,6 +24,17 @@ export async function createServerSupabase(): Promise<ServerSupabase> {
       setAll(cookiesToSet: CookieToSet[]) {
         writeCookiesWhenAllowed(cookieStore, cookiesToSet);
       },
+    },
+  });
+}
+
+export function createServiceSupabase(): ServerSupabase {
+  const env = getSupabaseEnv();
+  const serverEnv = getServerEnv();
+  return createClient<Database>(env.url, serverEnv.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
     },
   });
 }

@@ -36,5 +36,5 @@ export type TaskInput = z.infer<typeof taskInputSchema>;
 
 export type Task = Pick<
   Tables<"tasks">,
-  "id" | "short_id" | "title" | "urgency" | "deadline" | "status" | "created_at" | "completed_at"
+  "id" | "short_id" | "user_id" | "title" | "urgency" | "deadline" | "status" | "source" | "created_at" | "completed_at" | "remind_d1_at" | "remind_d0_at"
 >;

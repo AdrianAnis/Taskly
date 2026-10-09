@@ -1,7 +1,7 @@
 import { requireSession } from "@/auth/session";
 import type { Task, TaskStatus } from "@/tasks/schema";
 
-const TASK_COLUMNS = "id, short_id, title, urgency, deadline, status, created_at, completed_at";
+const TASK_COLUMNS = "id, short_id, user_id, title, urgency, deadline, status, source, created_at, completed_at, remind_d1_at, remind_d0_at";
 
 export async function listTasks(status: TaskStatus): Promise<Task[]> {
   const { supabase } = await requireSession();
