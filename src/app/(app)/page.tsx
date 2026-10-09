@@ -4,6 +4,7 @@ import { createTask } from "@/tasks/actions";
 import { listTasks } from "@/tasks/queries";
 import { sortTasks } from "@/tasks/sort";
 import { TaskForm } from "@/tasks/task-form";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { TaskList } from "@/tasks/task-list";
 import { toTaskView } from "@/tasks/task-view";
 
@@ -18,6 +19,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
 
   return (
     <div className="flex flex-col gap-10">
+      <PwaInstallPrompt />
       <section>
         <h2 className="sr-only">Tambah Tugas</h2>
         <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm sm:p-5">
