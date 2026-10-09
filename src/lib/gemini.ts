@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { z } from "zod";
 import { getServerEnv } from "./env";
-import { formatJakartaDateTime, now } from "./time";
+import { formatJakartaDateTime, now, toJakartaDateKey } from "./time";
 
 const TaskParsedSchema = z.object({
   title: z.string(),
@@ -23,23 +23,55 @@ export async function parseWaMessage(message: string): Promise<ParsedTask> {
   const ai = new GoogleGenerativeAI(env.GEMINI_API_KEY);
   const currentTimeStr = formatJakartaDateTime(now());
 
-  const prompt = `Kamu adalah asisten ekstraksi data todo list.
+  const calendar = Array.from({ length: 14 }, (_, i) => {
+    const day = new Date(now().getTime() + i * 24 * 60 * 60 * 1000);
+    const label = i === 0 ? "hari ini" : i === 1 ? "besok" : i === 2 ? "lusa" : `+${i} hari`;
+    return `${toJakartaDateKey(day)} = ${formatJakartaDateTime(day).split(" ").slice(0, 4).join(" ")} (${label})`;
+  }).join("\n");
+
+  const prompt = `Kamu adalah asisten to-do list pribadi berbahasa Indonesia santai/gaul. Tugasmu mengubah chat WhatsApp menjadi data tugas yang rapi.
+
 Waktu sekarang (Asia/Jakarta): ${currentTimeStr}
+Kalender 14 hari ke depan:
+${calendar}
 
 Pesan WA: "${message}"
 
-Ekstrak menjadi JSON dengan skema:
+Keluarkan JSON dengan skema:
 {
-  "title": "Nama tugas (tanpa kata urgensi/deadline)",
+  "title": string,
   "urgency": "ringan" | "sedang" | "banget",
-  "deadline": "YYYY-MM-DDTHH:mm" (format 24 jam) atau null jika tidak ada tenggat waktu
+  "deadline": "YYYY-MM-DDTHH:mm" | null
 }
 
-Aturan:
-- Urgensi: jika ada kata 'urgent', 'penting', 'asap', 'banget' -> 'banget'. Jika santai -> 'ringan'. Default 'sedang'.
-- Jam tanpa tanggal: hari ini jika belum terlewat, jika sudah terlewat maka besok.
-- Tanggal tanpa jam: 23:59.
-- JANGAN sertakan markdown backticks, HANYA JSON murni.`;
+ATURAN TITLE:
+- Singkat (maksimal ~8 kata), diawali huruf kapital, berupa aktivitas/objek tugas yang jelas.
+- Buang kata pembuka dan basa-basi: "tolong", "tambahkan tugas", "ingetin", "catat", "buatin", "ya", "dong", serta kata waktu dan urgensi ("besok", "jam 13:00", "penting banget", "deadline", "DL nya").
+- Pertahankan nama mata kuliah/proyek/orang/singkatan (misal "KWG", "PBO") apa adanya, jangan diubah atau diperluas.
+- Ubah bahasa gaul menjadi bentuk natural tapi jangan ubah maknanya ("ngerjain" -> "Kerjakan", "nugas" -> "Tugas", "beli" tetap "Beli").
+
+ATURAN URGENCY:
+- "banget": ada kata penting/urgent/asap/genting/wajib/jangan lupa, atau deadline dalam <= 24 jam dan terkesan mendesak.
+- "ringan": santai, kalau sempat, nggak buru-buru, kapan-kapan.
+- "sedang": selain itu (default).
+
+ATURAN DEADLINE (gunakan kalender di atas, jangan menghitung sendiri):
+- "hari Minggu/Senin/..." atau "minggu ini" + nama hari = tanggal terdekat hari itu yang belum lewat dari kalender.
+- "minggu depan" tanpa hari = Senin minggu depan; "akhir pekan" = Sabtu terdekat.
+- "siang" = 12:00 bila tanpa jam, "pagi" = 08:00, "sore" = 16:00, "malam" = 20:00. "jam 3 sore" = 15:00.
+- Jam tanpa tanggal: hari ini jika belum lewat, kalau sudah lewat maka besok.
+- Tanggal/hari tanpa jam sama sekali: 23:59.
+- Tidak ada petunjuk waktu sama sekali: null. Jangan mengarang deadline.
+
+CONTOH (anggap sekarang Jumat 09 Okt 2026 17:30):
+"tolong tambahin tugas ngerjain laporan presentasi besok siang jam 13:00, penting banget" ->
+{"title":"Kerjakan laporan presentasi","urgency":"banget","deadline":"2026-10-10T13:00"}
+"ingetin beli galon nanti malam" ->
+{"title":"Beli galon","urgency":"sedang","deadline":"2026-10-09T20:00"}
+"kalau sempat rapihin folder kuliah" ->
+{"title":"Rapikan folder kuliah","urgency":"ringan","deadline":null}
+
+Balas HANYA JSON murni tanpa markdown.`;
 
   for (const modelName of MODELS) {
     try {
