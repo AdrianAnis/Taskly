@@ -10,13 +10,13 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const BASE_CLASSES =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors duration-150 outline-none focus-visible:ring-4 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl text-sm font-medium transition-[colors,transform] duration-150 active:scale-[0.98] outline-none focus-visible:ring-[3px] focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-on-accent shadow-sm hover:bg-accent-hover",
-  secondary: "border border-line bg-surface text-ink hover:border-line-strong hover:bg-surface-muted",
+  primary: "bg-accent text-on-accent hover:bg-accent-hover",
+  secondary: "border border-line bg-surface-muted text-ink hover:border-line-strong hover:bg-line",
   ghost: "text-ink-muted hover:bg-surface-muted hover:text-ink",
-  danger: "bg-danger text-on-accent shadow-sm hover:bg-danger-hover",
+  danger: "bg-danger-soft text-danger hover:bg-danger hover:text-on-accent",
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {

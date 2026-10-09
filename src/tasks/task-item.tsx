@@ -49,7 +49,7 @@ export function TaskItem({ task }: { task: TaskView }): JSX.Element {
   if (mode === "edit") return <TaskEditor task={task} onClose={() => setMode("view")} />;
 
   return (
-    <li className={`group animate-enter flex items-start gap-3 px-3 py-3 transition-opacity duration-200 sm:px-4 ${isPending ? "opacity-60" : ""}`}>
+    <li className={`group animate-enter flex flex-wrap items-start gap-x-2 gap-y-1 px-2 py-2 transition-opacity duration-200 sm:flex-nowrap sm:px-3 ${isPending ? "opacity-60" : ""}`}>
       <StatusToggle title={task.title} isDone={isDone} isDisabled={isPending} onToggle={toggleDone} />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-2.5">
         <TaskSummary task={task} isDone={isDone} />
@@ -88,13 +88,13 @@ function StatusToggle({ title, isDone, isDisabled, onToggle }: StatusToggleProps
       aria-label={isDone ? `Kembalikan ke aktif: ${title}` : `Tandai selesai: ${title}`}
       onClick={onToggle}
       disabled={isDisabled}
-      className="group/toggle flex size-11 shrink-0 items-center justify-center rounded-full outline-none focus-visible:ring-4 focus-visible:ring-ring disabled:cursor-not-allowed"
+      className="group/toggle flex size-11 shrink-0 items-center justify-center rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring disabled:cursor-not-allowed"
     >
       <span
         className={`flex size-5 items-center justify-center rounded-full border-[1.5px] transition-all duration-200 ${
           isDone
-            ? "scale-100 border-success bg-success text-on-accent"
-            : "border-line-strong text-transparent group-hover/toggle:border-success group-hover/toggle:text-success"
+            ? "scale-100 border-accent bg-accent text-on-accent"
+            : "border-line-strong text-transparent group-hover/toggle:border-ink-muted group-hover/toggle:text-ink-muted"
         }`}
       >
         <CheckIcon className="size-3" strokeWidth={2.6} />
@@ -156,7 +156,7 @@ type DeleteConfirmProps = {
 
 function DeleteConfirm({ isPending, onCancel, onConfirm }: DeleteConfirmProps): JSX.Element {
   return (
-    <div className="animate-enter flex shrink-0 items-center gap-1" role="group" aria-label="Konfirmasi hapus">
+    <div className="animate-enter flex w-full shrink-0 items-center justify-end gap-1 pb-1 sm:w-auto sm:pb-0" role="group" aria-label="Konfirmasi hapus">
       <Button variant="ghost" onClick={onCancel} disabled={isPending}>
         Batal
       </Button>

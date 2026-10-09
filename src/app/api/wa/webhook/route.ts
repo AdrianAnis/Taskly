@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerEnv } from "@/lib/env";
 import { parseWaMessage } from "@/lib/gemini";
 import { createServiceSupabase } from "@/lib/supabase/server";
-import { parseJakartaInputValue, toJakartaInputValue } from "@/lib/time";
+import { formatJakartaDateTime, parseJakartaInputValue } from "@/lib/time";
 import { sendWhatsAppMessage } from "@/lib/fonnte";
 
 export async function GET(request: Request) {
@@ -13,10 +13,10 @@ export async function POST(request: Request) {
   const url = new URL(request.url);
   const env = getServerEnv();
 
-  // Temporarily bypass token check to see if Fonnte is hitting the webhook at all
-  // if (token !== env.FONNTE_WEBHOOK_SECRET) {
-  //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  // }
+  const token = url.searchParams.get("token");
+  if (token !== env.FONNTE_WEBHOOK_SECRET) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   let body: any;
   try {
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       activeTasks.forEach((t) => {
         replyMsg += `[#${t.short_id}] ${t.title} - ${t.urgency.toUpperCase()}\n`;
         if (t.deadline) {
-          replyMsg += `⏰ ${toJakartaInputValue(new Date(t.deadline))}\n`;
+          replyMsg += `⏰ ${formatJakartaDateTime(new Date(t.deadline))}\n`;
         }
         replyMsg += "\n";
       });
@@ -151,7 +151,7 @@ export async function POST(request: Request) {
 
   let replyMsg = `✅ *Tugas ditambahkan*\n\n📌 ${task.title}\n🚨 Urgensi: ${task.urgency}\n`;
   if (deadlineUtc) {
-    replyMsg += `⏰ Deadline: ${toJakartaInputValue(new Date(deadlineUtc))}\n`;
+    replyMsg += `⏰ Deadline: ${formatJakartaDateTime(new Date(deadlineUtc))}\n`;
   }
   replyMsg += `\n_ID Tugas: #${task.short_id}_`;
 

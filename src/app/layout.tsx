@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import { PwaRegistry } from "@/components/pwa-registry";
 import "./globals.css";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 export const metadata: Metadata = {
   title: "Taskly",
@@ -8,7 +11,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "Taskly",
   },
   formatDetection: {
@@ -17,7 +20,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#171717",
+  colorScheme: "dark",
+  viewportFit: "cover",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -25,7 +30,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="id" className={inter.variable}>
       <body>
         <PwaRegistry />
         {children}

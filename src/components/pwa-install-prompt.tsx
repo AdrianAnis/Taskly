@@ -50,12 +50,12 @@ export function PwaInstallPrompt(): JSX.Element | null {
   };
 
   return (
-    <div className="flex items-center justify-between rounded-xl bg-surface-hover p-4 shadow-sm">
+    <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-col">
         <h3 className="text-sm font-semibold text-ink">Install Taskly</h3>
         <p className="text-xs text-ink-muted">Akses lebih cepat & bisa offline</p>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 sm:shrink-0">
         <Button variant="ghost" size="md" onClick={() => setIsDismissed(true)}>
           Nanti
         </Button>

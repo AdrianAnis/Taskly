@@ -7,8 +7,9 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Aplikasi Todo List dengan notifikasi WhatsApp",
     start_url: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#ffffff",
+    background_color: "#171717",
+    theme_color: "#171717",
+    orientation: "portrait",
     icons: [
       {
         src: "/icon",
