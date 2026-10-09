@@ -5,6 +5,10 @@ import { createServiceSupabase } from "@/lib/supabase/server";
 import { parseJakartaInputValue, toJakartaInputValue } from "@/lib/time";
 import { sendWhatsAppMessage } from "@/lib/fonnte";
 
+export async function GET(request: Request) {
+  return NextResponse.json({ status: "ok" });
+}
+
 export async function POST(request: Request) {
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
