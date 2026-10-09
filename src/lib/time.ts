@@ -63,3 +63,22 @@ export function countJakartaDaysBetween(from: Date, to: Date): number {
   const toMidnight = Date.parse(`${toJakartaDateKey(to)}T00:00:00Z`);
   return Math.round((toMidnight - fromMidnight) / DAY_MS);
 }
+
+const LONG_WEEKDAY_NAMES = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"] as const;
+const LONG_MONTH_NAMES = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+] as const;
+const RELATIVE_DAY_LABELS = new Map<number, string>([
+  [-1, "Kemarin"],
+  [0, "Hari ini"],
+  [1, "Besok"],
+  [2, "Lusa"],
+]);
+
+export function formatJakartaLongDate(date: Date, reference: Date): string {
+  const parts = toJakartaParts(date);
+  const longDate = `${LONG_WEEKDAY_NAMES[parts.weekday]} ${parts.day} ${LONG_MONTH_NAMES[parts.month - 1]} ${parts.year}`;
+  const relative = RELATIVE_DAY_LABELS.get(countJakartaDaysBetween(reference, date));
+  return relative === undefined ? longDate : `${relative}, ${longDate}`;
+}

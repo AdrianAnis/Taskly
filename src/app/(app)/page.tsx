@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { now } from "@/lib/time";
 import { createTask } from "@/tasks/actions";
 import { listTasks } from "@/tasks/queries";
+import { groupTasksByDate } from "@/tasks/group";
 import { sortTasks } from "@/tasks/sort";
 import { TaskForm } from "@/tasks/task-form";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
@@ -23,7 +24,8 @@ export default async function DashboardPage(): Promise<JSX.Element> {
   const [todoList, doneList] = await Promise.all([listTasks("todo"), listTasks("done")]);
   const currentTime = now();
 
-  const activeTasks = sortTasks(todoList).map((task) => toTaskView(task, currentTime));
+  const activeGroups = groupTasksByDate(todoList, currentTime);
+  const activeCount = todoList.length;
   const completedTasks = sortTasks(doneList).map((task) => toTaskView(task, currentTime));
 
   return (
@@ -36,9 +38,21 @@ export default async function DashboardPage(): Promise<JSX.Element> {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3">
-        <SectionHeading title="Tugas Aktif" count={activeTasks.length} />
-        <TaskList tasks={activeTasks} emptyMessage="Tidak ada tugas aktif. Keren!" />
+      <section className="flex flex-col gap-6">
+        <SectionHeading title="Tugas Aktif" count={activeCount} />
+        {activeGroups.length === 0 ? (
+          <TaskList tasks={[]} emptyMessage="Tidak ada tugas aktif. Keren!" />
+        ) : (
+          activeGroups.map((group) => (
+            <div key={group.key} className="flex flex-col gap-2.5">
+              <h3 className={`px-1 text-sm font-semibold ${group.isOverdue ? "text-danger" : "text-ink"}`}>
+                {group.heading}
+                {group.isOverdue ? <span className="ml-2 text-xs font-medium text-danger/80">Terlewat</span> : null}
+              </h3>
+              <TaskList tasks={group.tasks} emptyMessage="" />
+            </div>
+          ))
+        )}
       </section>
 
       {completedTasks.length > 0 ? (
