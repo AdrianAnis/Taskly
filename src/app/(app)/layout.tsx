@@ -2,7 +2,8 @@ import type { JSX, ReactNode } from "react";
 import { signOut } from "@/auth/actions";
 import { requireSession } from "@/auth/session";
 import { Button } from "@/components/button";
-import { CheckIcon } from "@/components/icons";
+import { Logo } from "@/components/logo";
+import { RealtimeTasks } from "@/components/realtime-tasks";
 
 export const instant = false;
 
@@ -10,12 +11,11 @@ export default async function AppLayout({ children }: { children: ReactNode }): 
   await requireSession();
   return (
     <div className="flex min-h-dvh flex-col">
+      <RealtimeTasks />
       <header className="sticky top-0 z-10 border-b border-line bg-canvas/80 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl sm:px-6">
         <div className="mx-auto flex max-w-2xl items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span aria-hidden="true" className="flex size-7 items-center justify-center rounded-lg bg-accent text-on-accent">
-              <CheckIcon className="size-4" strokeWidth={2.6} />
-            </span>
+            <Logo className="size-8" />
             <h1 className="text-[15px] font-semibold tracking-tight text-ink">Taskly</h1>
           </div>
           <form action={signOut}>

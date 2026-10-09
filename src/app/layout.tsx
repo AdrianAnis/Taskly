@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   title: "Taskly",
   description: "Aplikasi Todo List dengan notifikasi WhatsApp",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/logo.svg", type: "image/svg+xml" }, { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

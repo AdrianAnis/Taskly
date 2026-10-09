@@ -1,0 +1,15 @@
+import type { JSX } from "react";
+
+type LogoProps = {
+  className?: string;
+};
+
+export function Logo({ className = "size-8" }: LogoProps): JSX.Element {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 512 512" className={className}>
+      <rect x="8" y="8" width="496" height="496" rx="120" fill="#1a1a1a" stroke="#3a3a3a" strokeWidth="4" />
+      <path d="M146 270 L226 350 L338 196" fill="none" stroke="#ededed" strokeWidth="68" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M404 62 C410 118 428 136 484 142 C428 148 410 166 404 222 C398 166 380 148 324 142 C380 136 398 118 404 62 Z" fill="#ededed" />
+    </svg>
+  );
+}
