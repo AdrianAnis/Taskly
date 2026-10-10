@@ -4,6 +4,7 @@ import { getServerEnv } from "./env";
 import { formatJakartaDateTime, now, toJakartaDateKey } from "./time";
 
 const TaskParsedSchema = z.object({
+  is_task: z.boolean(),
   title: z.string(),
   urgency: z.enum(["ringan", "sedang", "banget"]),
   deadline: z.string().nullable(),
@@ -13,11 +14,11 @@ const MODELS = ["gemini-3.5-flash", "gemini-3.7-flash", "gemini-3.1-flash-lite"]
 
 export type ParsedTask = z.infer<typeof TaskParsedSchema>;
 
-export async function parseWaMessage(message: string): Promise<ParsedTask> {
+export async function parseWaMessage(message: string): Promise<ParsedTask | null> {
   const env = getServerEnv();
   
   if (!env.GEMINI_API_KEY) {
-    return { title: message, urgency: "sedang", deadline: null };
+    return { is_task: true, title: message, urgency: "sedang", deadline: null };
   }
 
   const ai = new GoogleGenerativeAI(env.GEMINI_API_KEY);
@@ -39,10 +40,15 @@ Pesan WA: "${message}"
 
 Keluarkan JSON dengan skema:
 {
+  "is_task": boolean,
   "title": string,
   "urgency": "ringan" | "sedang" | "banget",
   "deadline": "YYYY-MM-DDTHH:mm" | null
 }
+
+ATURAN IS_TASK:
+- true hanya jika pesan jelas berisi sesuatu yang harus dikerjakan/diingat (tugas, janji, agenda, kewajiban, belanja, dll).
+- false untuk sapaan, basa-basi, pertanyaan ke bot, curhat, ucapan terima kasih, atau pesan tanpa aktivitas yang bisa dicatat. Jika false, isi title "", urgency "sedang", deadline null.
 
 ATURAN TITLE:
 - Singkat (maksimal ~8 kata), diawali huruf kapital, berupa aktivitas/objek tugas yang jelas.
@@ -65,11 +71,15 @@ ATURAN DEADLINE (gunakan kalender di atas, jangan menghitung sendiri):
 
 CONTOH (anggap sekarang Jumat 09 Okt 2026 17:30):
 "tolong tambahin tugas ngerjain laporan presentasi besok siang jam 13:00, penting banget" ->
-{"title":"Kerjakan laporan presentasi","urgency":"banget","deadline":"2026-10-10T13:00"}
+{"is_task":true,"title":"Kerjakan laporan presentasi","urgency":"banget","deadline":"2026-10-10T13:00"}
 "ingetin beli galon nanti malam" ->
-{"title":"Beli galon","urgency":"sedang","deadline":"2026-10-09T20:00"}
+{"is_task":true,"title":"Beli galon","urgency":"sedang","deadline":"2026-10-09T20:00"}
 "kalau sempat rapihin folder kuliah" ->
-{"title":"Rapikan folder kuliah","urgency":"ringan","deadline":null}
+{"is_task":true,"title":"Rapikan folder kuliah","urgency":"ringan","deadline":null}
+
+"halo bot" -> {"is_task":false,"title":"","urgency":"sedang","deadline":null}
+"makasih ya" -> {"is_task":false,"title":"","urgency":"sedang","deadline":null}
+"kamu bisa apa aja?" -> {"is_task":false,"title":"","urgency":"sedang","deadline":null}
 
 Balas HANYA JSON murni tanpa markdown.`;
 
@@ -86,5 +96,5 @@ Balas HANYA JSON murni tanpa markdown.`;
     }
   }
 
-  return { title: message, urgency: "sedang", deadline: null };
+  return null;
 }

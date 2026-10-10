@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerEnv } from "@/lib/env";
 import { parseWaMessage } from "@/lib/gemini";
+import { handleCommand, NOT_A_TASK_MESSAGE } from "@/lib/wa-commands";
 import { createServiceSupabase } from "@/lib/supabase/server";
 import { formatJakartaDateTime, parseJakartaInputValue } from "@/lib/time";
 import { sendWhatsAppMessage } from "@/lib/fonnte";
@@ -59,61 +60,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ status: "already_processed" });
   }
 
-  const msgLower = message.trim().toLowerCase();
-  
-  if (msgLower === "list") {
-    const { data: activeTasks } = await supabase
-      .from("tasks")
-      .select("*")
-      .eq("status", "todo")
-      .order("created_at", { ascending: true });
-
-    let replyMsg = "📋 *Daftar Tugas Aktif*\n\n";
-    if (!activeTasks || activeTasks.length === 0) {
-      replyMsg += "Tidak ada tugas! 🎉";
-    } else {
-      activeTasks.forEach((t) => {
-        replyMsg += `[#${t.short_id}] ${t.title} - ${t.urgency.toUpperCase()}\n`;
-        if (t.deadline) {
-          replyMsg += `⏰ ${formatJakartaDateTime(new Date(t.deadline))}\n`;
-        }
-        replyMsg += "\n";
-      });
-    }
-
-    await sendWhatsAppMessage(sender, replyMsg);
-    await supabase.from("wa_messages").insert({ provider_id: providerId, sender, body: message, parsed: { cmd: "list" } });
-    return NextResponse.json({ status: "success", cmd: "list" });
+  const command = await handleCommand(message, supabase);
+  if (command?.kind === "reply") {
+    await sendWhatsAppMessage(sender, command.reply);
+    await supabase.from("wa_messages").insert({ provider_id: providerId, sender, body: message, parsed: { cmd: command.cmd } });
+    return NextResponse.json({ status: "success", cmd: command.cmd });
   }
 
-  if (msgLower.startsWith("selesai ")) {
-    const shortIdStr = msgLower.replace("selesai ", "").trim();
-    const shortId = parseInt(shortIdStr, 10);
-    
-    if (!isNaN(shortId)) {
-      const { data: updated, error: updateErr } = await supabase
-        .from("tasks")
-        .update({ status: "done", completed_at: new Date().toISOString() })
-        .eq("short_id", shortId)
-        .eq("status", "todo")
-        .select()
-        .single();
-        
-      let replyMsg = "";
-      if (updateErr || !updated) {
-        replyMsg = `⚠️ Gagal menandai selesai. Tugas #${shortId} tidak ditemukan atau sudah selesai.`;
-      } else {
-        replyMsg = `✅ Tugas selesai: *${updated.title}*`;
-      }
-      
-      await sendWhatsAppMessage(sender, replyMsg);
-      await supabase.from("wa_messages").insert({ provider_id: providerId, sender, body: message, parsed: { cmd: "selesai", shortId } });
-      return NextResponse.json({ status: "success", cmd: "selesai" });
-    }
+  const taskText = command?.kind === "add" ? command.text : message;
+  const parsed = await parseWaMessage(taskText);
+
+  if (parsed === null) {
+    await sendWhatsAppMessage(sender, "⚠️ AI sedang sibuk, coba kirim ulang pesanmu sebentar lagi ya.");
+    return NextResponse.json({ status: "ai_unavailable" });
   }
 
-  const parsed = await parseWaMessage(message);
-  
+  if (!parsed.is_task && command === null) {
+    await sendWhatsAppMessage(sender, NOT_A_TASK_MESSAGE);
+    await supabase.from("wa_messages").insert({ provider_id: providerId, sender, body: message, parsed: { cmd: "not_a_task" } });
+    return NextResponse.json({ status: "not_a_task" });
+  }
+
+  const title = parsed.title.trim() === "" ? taskText : parsed.title;
   let deadlineUtc: string | null = null;
   if (parsed.deadline) {
     try {
@@ -127,11 +95,11 @@ export async function POST(request: Request) {
     .from("tasks")
     .insert({
       user_id: env.OWNER_USER_ID,
-      title: parsed.title,
+      title,
       urgency: parsed.urgency,
       deadline: deadlineUtc,
       status: "todo",
-      source: "wa"
+      source: "wa",
     })
     .select()
     .single();
@@ -145,7 +113,7 @@ export async function POST(request: Request) {
     provider_id: providerId,
     sender,
     body: message,
-    parsed: parsed,
+    parsed,
     task_id: task.id,
   });
 
