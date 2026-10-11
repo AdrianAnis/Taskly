@@ -1,14 +1,20 @@
 import type { JSX, ReactNode } from "react";
-import { signOut } from "@/auth/actions";
 import { requireSession } from "@/auth/session";
-import { Button } from "@/components/button";
 import { Logo } from "@/components/logo";
+import { ProfileModal } from "@/components/profile-modal";
 import { RealtimeTasks } from "@/components/realtime-tasks";
 
 export const instant = false;
 
 export default async function AppLayout({ children }: { children: ReactNode }): Promise<JSX.Element> {
-  await requireSession();
+  const { user } = await requireSession();
+  const phone = (user.user_metadata?.phone as string | undefined) || process.env.OWNER_PHONE || "";
+  const name =
+    (user.user_metadata?.full_name as string | undefined) ||
+    (user.user_metadata?.name as string | undefined) ||
+    user.email?.split("@")[0] ||
+    "User";
+
   return (
     <div className="flex min-h-dvh flex-col">
       <RealtimeTasks />
@@ -18,14 +24,11 @@ export default async function AppLayout({ children }: { children: ReactNode }): 
             <Logo className="size-8" />
             <h1 className="text-[15px] font-semibold tracking-tight text-ink">Taskly</h1>
           </div>
-          <form action={signOut}>
-            <Button type="submit" variant="ghost" size="md" className="h-9 min-h-9 px-3 text-sm">
-              Keluar
-            </Button>
-          </form>
+          <ProfileModal email={user.email ?? ""} phone={phone} name={name} />
         </div>
       </header>
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-6 sm:px-6 sm:pt-10">{children}</main>
     </div>
   );
 }
+
