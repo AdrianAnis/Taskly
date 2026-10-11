@@ -137,13 +137,10 @@ export function ProfileModal({ email, phone, name }: ProfileModalProps): JSX.Ele
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 rounded-full border border-line bg-surface/80 py-1 pl-1.5 pr-3 text-xs font-medium text-ink transition-all hover:border-line-strong hover:bg-surface-muted active:scale-95"
+        className="flex size-8 items-center justify-center rounded-full bg-accent text-xs font-bold text-on-accent transition-all hover:opacity-90 active:scale-95"
         aria-label="Lihat Profil"
       >
-        <span className="flex size-6 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-on-accent">
-          {initial}
-        </span>
-        <span className="max-w-[120px] truncate text-[13px]">{displayName}</span>
+        {initial}
       </button>
 
       {mounted && modalContent ? createPortal(modalContent, document.body) : null}
